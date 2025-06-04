@@ -24,7 +24,7 @@ export default function AppNavigator() {
               iconName = 'checklist';
             } else if (route.name === 'Pomodoro') {
               iconName = 'timer';
-            } else if (route.name === 'Diary') {
+            } else if (route.name === 'Diário') {
               iconName = 'book';
             }
 
@@ -40,7 +40,7 @@ export default function AppNavigator() {
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Checklist" component={ChecklistScreen} />
         <Tab.Screen name="Pomodoro" component={PomodoroScreen} />
-        <Tab.Screen name="Diary" component={DiaryScreen} />
+        <Tab.Screen name="Diário" component={DiaryScreen} />
       </Tab.Navigator>
     </NavigationContainer>
   );

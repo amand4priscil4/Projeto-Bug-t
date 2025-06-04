@@ -24,7 +24,7 @@ export default function ChecklistScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [editTitle, setEditTitle] = useState('');
-  const [editPriority, setEditPriority] = useState('medium');
+  const [editPriority, setEditPriority] = useState('média');
 
   // Carregar tarefas ao iniciar
   useEffect(() => {
@@ -67,8 +67,8 @@ export default function ChecklistScreen() {
   const addTask = async () => {
     try {
       const newTaskData = {
-        title: 'New development task',
-        priority: 'medium'
+        title: 'Nova tarefa do desenvolvedor',
+        priority: 'média'
       };
       
       const response = await ApiService.createTask(newTaskData);
@@ -89,7 +89,7 @@ export default function ChecklistScreen() {
     setIsModalVisible(false);
     setEditingTask(null);
     setEditTitle('');
-    setEditPriority('medium');
+    setEditPriority('média');
   };
 
   const saveTask = async () => {
@@ -114,19 +114,19 @@ export default function ChecklistScreen() {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return colors.primary.darkRed;
-      case 'medium': return colors.primary.gold;
-      case 'low': return colors.primary.darkTeal;
+      case 'leve': return colors.primary.darkRed;
+      case 'média': return colors.primary.gold;
+      case 'urgente': return colors.primary.darkTeal;
       default: return colors.primary.gold;
     }
   };
 
   const getPriorityText = (priority) => {
     switch (priority) {
-      case 'high': return 'High Priority';
-      case 'medium': return 'Medium';
-      case 'low': return 'Low Priority';
-      default: return 'Medium';
+      case 'leve': return 'leve';
+      case 'média': return 'média';
+      case 'urgente': return 'urgente';
+      default: return 'Média';
     }
   };
 
@@ -182,7 +182,7 @@ export default function ChecklistScreen() {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
         <ActivityIndicator size="large" color={colors.primary.darkTeal} />
-        <Text style={styles.loadingText}>Loading tasks...</Text>
+        <Text style={styles.loadingText}>Carregando tarefas...</Text>
       </View>
     );
   }
@@ -190,15 +190,15 @@ export default function ChecklistScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Title style={styles.title}>Dev Tasks</Title>
+        <Title style={styles.title}>Dev tarefas</Title>
         <View style={styles.statsContainer}>
           <View style={[styles.statChip, { backgroundColor: colors.primary.darkTeal }]}>
             <Text style={styles.statText}>{completedTasks}/{totalTasks}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+            <Text style={styles.statLabel}>Completas</Text>
           </View>
           <View style={[styles.statChip, { backgroundColor: colors.primary.gold }]}>
             <Text style={styles.statText}>{totalTasks - completedTasks}</Text>
-            <Text style={styles.statLabel}>Pending</Text>
+            <Text style={styles.statLabel}>Pendentes</Text>
           </View>
         </View>
       </View>
@@ -227,10 +227,10 @@ export default function ChecklistScreen() {
           contentContainerStyle={styles.modalContainer}
         >
           <View style={styles.modalContent}>
-            <Title style={styles.modalTitle}>Edit Task</Title>
+            <Title style={styles.modalTitle}>Editar tarefas</Title>
             
             <TextInput
-              label="Task Title"
+              label="Título"
               value={editTitle}
               onChangeText={setEditTitle}
               style={styles.textInput}
@@ -239,31 +239,31 @@ export default function ChecklistScreen() {
               activeOutlineColor={colors.primary.darkTeal}
             />
 
-            <Text style={styles.priorityLabel}>Priority Level</Text>
+            <Text style={styles.priorityLabel}>Prioridade</Text>
             <RadioButton.Group 
               onValueChange={setEditPriority} 
               value={editPriority}
             >
               <View style={styles.radioOption}>
                 <RadioButton 
-                  value="high" 
+                  value="Leve" 
                   color={colors.primary.darkRed}
                 />
-                <Text style={styles.radioText}>High Priority</Text>
+                <Text style={styles.radioText}>Leve</Text>
               </View>
               <View style={styles.radioOption}>
                 <RadioButton 
-                  value="medium" 
+                  value="média" 
                   color={colors.primary.gold}
                 />
-                <Text style={styles.radioText}>Medium Priority</Text>
+                <Text style={styles.radioText}>Média</Text>
               </View>
               <View style={styles.radioOption}>
                 <RadioButton 
-                  value="low" 
+                  value="Urgente" 
                   color={colors.primary.darkTeal}
                 />
-                <Text style={styles.radioText}>Low Priority</Text>
+                <Text style={styles.radioText}>Urgente</Text>
               </View>
             </RadioButton.Group>
 
@@ -274,7 +274,7 @@ export default function ChecklistScreen() {
                 style={styles.cancelButton}
                 textColor={colors.text.secondary}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button 
                 mode="contained" 
@@ -282,7 +282,7 @@ export default function ChecklistScreen() {
                 style={styles.saveButton}
                 buttonColor={colors.primary.darkTeal}
               >
-                Save
+                Salvar
               </Button>
             </View>
           </View>

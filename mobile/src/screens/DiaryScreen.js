@@ -12,13 +12,15 @@ import {
   Portal,
   TextInput,
   Button,
-  RadioButton
+  RadioButton,
+  ActivityIndicator
 } from 'react-native-paper';
-import { StorageService } from '../services/StorageService';
+import ApiService from '../services/ApiService';
 import { colors } from '../utils/colors';
 
 export default function DiaryScreen() {
   const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
   const [editTitle, setEditTitle] = useState('');
@@ -31,62 +33,41 @@ export default function DiaryScreen() {
     loadEntries();
   }, []);
 
-  // Salvar entradas sempre que mudarem
-  useEffect(() => {
-    if (entries.length > 0) {
-      StorageService.saveDiary(entries);
-    }
-  }, [entries]);
-
   const loadEntries = async () => {
-    const savedEntries = await StorageService.loadDiary();
-    if (savedEntries.length === 0) {
-      // Entradas iniciais se não houver dados salvos
-      setEntries([
-        {
-          id: '1',
-          date: '2025-06-04',
-          title: 'React Native Development Setup',
-          content: 'Today I configured a new React Native project with Expo. Learned about navigation patterns and implemented basic screen structure. The development experience is quite smooth with hot reload.',
-          tags: ['React Native', 'Expo', 'Navigation'],
-          mood: 'productive'
-        },
-        {
-          id: '2',
-          date: '2025-06-03',
-          title: 'AsyncStorage Deep Dive',
-          content: 'Studied local storage solutions for React Native. AsyncStorage is the go-to solution for persistent data. Implemented CRUD operations for task management.',
-          tags: ['AsyncStorage', 'Storage', 'Mobile'],
-          mood: 'focused'
-        },
-        {
-          id: '3',
-          date: '2025-06-02',
-          title: 'UI Design Patterns',
-          content: 'Explored modern UI patterns for mobile apps. React Native Paper provides excellent components. Color schemes and spacing are crucial for good UX.',
-          tags: ['UI Design', 'React Native Paper', 'UX'],
-          mood: 'creative'
-        }
-      ]);
-    } else {
-      setEntries(savedEntries);
+    try {
+      setLoading(true);
+      const response = await ApiService.getDiary();
+      setEntries(response.data || []);
+    } catch (error) {
+      console.error('Erro ao carregar diario:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const addEntry = () => {
-    const newEntry = {
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
-      title: 'New Learning Entry',
-      content: 'Describe what you learned today...',
-      tags: ['New', 'Learning'],
-      mood: 'curious'
-    };
-    setEntries([newEntry, ...entries]);
+  const addEntry = async () => {
+    try {
+      const newEntryData = {
+        title: 'Nova escrita de hoje',
+        content: 'Descreva algo de interessante que você aprendeu hoje...',
+        tags: ['New', 'Learning'],
+        mood: 'curioso'
+      };
+      
+      const response = await ApiService.createDiaryEntry(newEntryData);
+      setEntries([response.data, ...entries]);
+    } catch (error) {
+      console.error('Erro ao criar entrada:', error);
+    }
   };
 
-  const deleteEntry = (id) => {
-    setEntries(entries.filter(entry => entry.id !== id));
+  const deleteEntry = async (entryId) => {
+    try {
+      await ApiService.deleteDiaryEntry(entryId);
+      setEntries(entries.filter(entry => entry.id !== entryId));
+    } catch (error) {
+      console.error('Erro ao deletar entrada:', error);
+    }
   };
 
   const openEditModal = (entry) => {
@@ -104,53 +85,63 @@ export default function DiaryScreen() {
     setEditTitle('');
     setEditContent('');
     setEditTags('');
-    setEditMood('productive');
+    setEditMood('produtivo');
   };
 
-  const saveEntry = () => {
+  const saveEntry = async () => {
     if (editingEntry && editTitle.trim() && editContent.trim()) {
-      const updatedEntry = {
-        ...editingEntry,
-        title: editTitle.trim(),
-        content: editContent.trim(),
-        tags: editTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
-        mood: editMood
-      };
-      
-      setEntries(entries.map(entry => 
-        entry.id === editingEntry.id ? updatedEntry : entry
-      ));
-      closeEditModal();
+      try {
+        const updatedEntryData = {
+          title: editTitle.trim(),
+          content: editContent.trim(),
+          tags: editTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+          mood: editMood
+        };
+        
+        await ApiService.updateDiaryEntry(editingEntry.id, updatedEntryData);
+        
+        const updatedEntry = {
+          ...editingEntry,
+          ...updatedEntryData
+        };
+        
+        setEntries(entries.map(entry => 
+          entry.id === editingEntry.id ? updatedEntry : entry
+        ));
+        closeEditModal();
+      } catch (error) {
+        console.error('Erro ao salvar entrada:', error);
+      }
     }
   };
 
   const getMoodColor = (mood) => {
     switch (mood) {
-      case 'productive': return colors.primary.darkTeal;
-      case 'focused': return colors.primary.darkRed;
-      case 'creative': return colors.primary.gold;
-      case 'curious': return colors.primary.lightYellow;
+      case 'produtivo': return colors.primary.darkTeal;
+      case 'focado': return colors.primary.darkRed;
+      case 'criativo': return colors.primary.gold;
+      case 'curioso': return colors.primary.lightYellow;
       default: return colors.primary.gold;
     }
   };
 
   const getMoodEmoji = (mood) => {
     switch (mood) {
-      case 'productive': return '🚀';
-      case 'focused': return '🎯';
-      case 'creative': return '🎨';
-      case 'curious': return '🤔';
+      case 'produtivo': return '🚀';
+      case 'focado': return '🎯';
+      case 'criativo': return '🎨';
+      case 'curioso': return '🤔';
       default: return '📝';
     }
   };
 
   const getMoodText = (mood) => {
     switch (mood) {
-      case 'productive': return 'Productive';
-      case 'focused': return 'Focused';
-      case 'creative': return 'Creative';
-      case 'curious': return 'Curious';
-      default: return 'Productive';
+      case 'produtivo': return 'Productive';
+      case 'focado': return 'Focused';
+      case 'criativo': return 'Creative';
+      case 'curioso': return 'Curious';
+      default: return 'Produtivo';
     }
   };
 
@@ -209,18 +200,27 @@ export default function DiaryScreen() {
     </Card>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={colors.primary.darkTeal} />
+        <Text style={styles.loadingText}>Carregando entradas...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Title style={styles.title}>Tech Diary</Title>
+        <Title style={styles.title}>Tech Diário</Title>
         <View style={styles.statsContainer}>
           <View style={[styles.statChip, { backgroundColor: colors.primary.darkTeal }]}>
             <Text style={styles.statText}>{entries.length}</Text>
-            <Text style={styles.statLabel}>Entries</Text>
+            <Text style={styles.statLabel}>Entradas</Text>
           </View>
           <View style={[styles.statChip, { backgroundColor: colors.primary.gold }]}>
             <Text style={styles.statText}>📚</Text>
-            <Text style={styles.statLabel}>Learning</Text>
+            <Text style={styles.statLabel}>Leituras</Text>
           </View>
         </View>
       </View>
@@ -249,10 +249,10 @@ export default function DiaryScreen() {
           contentContainerStyle={styles.modalContainer}
         >
           <ScrollView style={styles.modalContent}>
-            <Title style={styles.modalTitle}>Edit Entry</Title>
+            <Title style={styles.modalTitle}>Editar entrada</Title>
             
             <TextInput
-              label="Entry Title"
+              label="Título"
               value={editTitle}
               onChangeText={setEditTitle}
               style={styles.textInput}
@@ -262,7 +262,7 @@ export default function DiaryScreen() {
             />
 
             <TextInput
-              label="Content"
+              label="Conteúdo"
               value={editContent}
               onChangeText={setEditContent}
               style={styles.textAreaInput}
@@ -274,7 +274,7 @@ export default function DiaryScreen() {
             />
 
             <TextInput
-              label="Tags (separated by commas)"
+              label="Tags (Separe por vígulas)"
               value={editTags}
               onChangeText={setEditTags}
               style={styles.textInput}
@@ -291,31 +291,31 @@ export default function DiaryScreen() {
             >
               <View style={styles.radioOption}>
                 <RadioButton 
-                  value="productive" 
+                  value="produtivo" 
                   color={colors.primary.darkTeal}
                 />
-                <Text style={styles.radioText}>🚀 Productive</Text>
+                <Text style={styles.radioText}>🚀 Produtivo</Text>
               </View>
               <View style={styles.radioOption}>
                 <RadioButton 
-                  value="focused" 
+                  value="focado" 
                   color={colors.primary.darkRed}
                 />
-                <Text style={styles.radioText}>🎯 Focused</Text>
+                <Text style={styles.radioText}>🎯 Focado</Text>
               </View>
               <View style={styles.radioOption}>
                 <RadioButton 
-                  value="creative" 
+                  value="criativo" 
                   color={colors.primary.gold}
                 />
-                <Text style={styles.radioText}>🎨 Creative</Text>
+                <Text style={styles.radioText}>🎨 Criativo</Text>
               </View>
               <View style={styles.radioOption}>
                 <RadioButton 
-                  value="curious" 
+                  value="curioso" 
                   color={colors.primary.gold}
                 />
-                <Text style={styles.radioText}>🤔 Curious</Text>
+                <Text style={styles.radioText}>🤔 Curioso</Text>
               </View>
             </RadioButton.Group>
 
@@ -326,7 +326,7 @@ export default function DiaryScreen() {
                 style={styles.cancelButton}
                 textColor={colors.text.secondary}
               >
-                Cancel
+                Cancelar
               </Button>
               <Button 
                 mode="contained" 
@@ -334,7 +334,7 @@ export default function DiaryScreen() {
                 style={styles.saveButton}
                 buttonColor={colors.primary.darkTeal}
               >
-                Save
+                Salvar
               </Button>
             </View>
           </ScrollView>
@@ -348,6 +348,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    color: colors.text.secondary,
   },
   header: {
     padding: 25,

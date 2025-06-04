@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Image } from 'react-native';
-import { Card, Title, Text, Avatar } from 'react-native-paper';
-import { StorageService } from '../services/StorageService';
+import { Card, Title, Text, Avatar, ActivityIndicator } from 'react-native-paper';
+import ApiService from '../services/ApiService';
 import { colors } from '../utils/colors';
 
 export default function HomeScreen() {
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     tasks: 0,
     completedTasks: 0,
@@ -18,38 +19,56 @@ export default function HomeScreen() {
 
   const loadStats = async () => {
     try {
-      const tasks = await StorageService.loadTasks();
-      const diary = await StorageService.loadDiary();
-      const pomodoro = await StorageService.loadPomodoroStats();
-
+      setLoading(true);
+      
+      // Fazer todas as chamadas da API em paralelo
+      const [tasksResponse, diaryResponse, pomodoroResponse] = await Promise.all([
+        ApiService.getTasks(),
+        ApiService.getDiary(),
+        ApiService.getTodayStats()
+      ]);
+      
+      const tasks = tasksResponse.data || [];
+      const diary = diaryResponse.data || [];
+      const todayStats = pomodoroResponse.data || {};
+      
       setStats({
         tasks: tasks.length,
         completedTasks: tasks.filter(task => task.completed).length,
-        pomodoroSessions: pomodoro.sessionsToday || 0,
+        pomodoroSessions: todayStats.sessions || 0,
         diaryEntries: diary.length
       });
     } catch (error) {
-      console.log('Erro ao carregar estatísticas:', error);
+      console.error('Erro ao carregar estatísticas:', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={colors.primary.darkTeal} />
+        <Text style={styles.loadingText}>Carregando dashboard...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
       {/* Logo */}
       <View style={styles.logoSpace}>
-        <Image source={require('../../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+        <Image 
+          source={require('../../assets/logo.png')} 
+          style={styles.logo}
+          resizeMode="contain"
+        />
       </View>
 
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Good morning,</Text>
-          <Title style={styles.userName}>Developer!</Title>
-        </View>
-        <View style={styles.headerActions}>
-          <Text style={styles.addButton}>Add classes</Text>
-          <View style={styles.lessonButton}>
-            <Text style={styles.lessonText}>Lessons</Text>
-          </View>
+          <Text style={styles.greeting}>Bem vindx,</Text>
+          <Title style={styles.userName}>Desenvolvedxr!</Title>
         </View>
       </View>
 
@@ -62,14 +81,16 @@ export default function HomeScreen() {
                   <Text style={styles.cardIcon}>📝</Text>
                 </View>
               </View>
-              <Text style={styles.cardTitle}>Tasks</Text>
-              <Avatar.Text
-                size={30}
-                label="D"
+              <Text style={styles.cardTitle}>Tarefas</Text>
+              <Avatar.Text 
+                size={30} 
+                label={stats.tasks.toString()} 
                 style={styles.cardAvatar}
                 labelStyle={styles.avatarLabel}
               />
-              <Text style={styles.cardSubtitle}>Dev Projects</Text>
+              <Text style={styles.cardSubtitle}>
+                {stats.completedTasks}/{stats.tasks} completas
+              </Text>
             </Card.Content>
           </Card>
 
@@ -80,58 +101,56 @@ export default function HomeScreen() {
                   <Text style={styles.cardIcon}>⏱</Text>
                 </View>
               </View>
-              <Text style={styles.cardTitle}>Focus</Text>
-              <Avatar.Text
-                size={30}
-                label={stats.pomodoroSessions.toString()}
+              <Text style={styles.cardTitle}>Foco</Text>
+              <Avatar.Text 
+                size={30} 
+                label={stats.pomodoroSessions.toString()} 
                 style={styles.cardAvatar}
                 labelStyle={styles.avatarLabel}
               />
-              <Text style={styles.cardSubtitle}>Sessions</Text>
+              <Text style={styles.cardSubtitle}>Sessões de hoje</Text>
             </Card.Content>
           </Card>
         </View>
 
         <View style={styles.bottomRow}>
-          <Card
-            style={[styles.card, styles.leftCard, { backgroundColor: colors.primary.lightYellow }]}
-          >
+          <Card style={[styles.card, styles.leftCard, { backgroundColor: colors.primary.lightYellow }]}>
             <Card.Content style={styles.cardContent}>
               <View style={styles.cardHeader}>
                 <View style={styles.cardIconContainer}>
                   <Text style={[styles.cardIcon, { color: colors.primary.darkTeal }]}>💻</Text>
                 </View>
               </View>
-              <Text style={[styles.cardTitle, { color: colors.primary.darkTeal }]}>Debug</Text>
-              <Avatar.Text
-                size={30}
-                label="0"
+              <Text style={[styles.cardTitle, { color: colors.primary.darkTeal }]}>
+                Debug
+              </Text>
+              <Avatar.Text 
+                size={30} 
+                label="0" 
                 style={[styles.cardAvatar, { backgroundColor: colors.primary.darkTeal }]}
                 labelStyle={styles.avatarLabel}
               />
               <Text style={[styles.cardSubtitle, { color: colors.primary.darkTeal }]}>
-                Bugs Fixed
+                Bugs fixos de hoje
               </Text>
             </Card.Content>
           </Card>
 
-          <Card
-            style={[styles.card, styles.rightCard, { backgroundColor: colors.primary.darkTeal }]}
-          >
+          <Card style={[styles.card, styles.rightCard, { backgroundColor: colors.primary.darkTeal }]}>
             <Card.Content style={styles.cardContent}>
               <View style={styles.cardHeader}>
                 <View style={styles.cardIconContainer}>
                   <Text style={styles.cardIcon}>📚</Text>
                 </View>
               </View>
-              <Text style={styles.cardTitle}>Learning</Text>
-              <Avatar.Text
-                size={30}
-                label={stats.diaryEntries.toString()}
+              <Text style={styles.cardTitle}>Diário</Text>
+              <Avatar.Text 
+                size={30} 
+                label={stats.diaryEntries.toString()} 
                 style={styles.cardAvatar}
                 labelStyle={styles.avatarLabel}
               />
-              <Text style={styles.cardSubtitle}>Tech Diary</Text>
+              <Text style={styles.cardSubtitle}>Diário de bordo</Text>
             </Card.Content>
           </Card>
         </View>
@@ -143,90 +162,98 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background
+    backgroundColor: colors.background,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    color: colors.text.secondary,
   },
   logoSpace: {
     height: 100,
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 30,
-    marginBottom: 20
+    marginBottom: 20,
   },
   logo: {
     width: 300,
-    height: 200
+    height: 200,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 25,
-    paddingVertical: 10,
-    marginBottom: 40
+    paddingVertical: 20,
+    marginBottom: 40,
   },
   greeting: {
     fontSize: 16,
-    color: colors.text.secondary
+    color: colors.text.secondary,
   },
   userName: {
     fontSize: 26,
     fontWeight: 'bold',
     color: colors.primary.darkTeal,
-    marginTop: -5
+    marginTop: -5,
   },
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: 12,
   },
   addButton: {
     fontSize: 14,
-    color: colors.text.secondary
+    color: colors.text.secondary,
   },
   lessonButton: {
     backgroundColor: colors.primary.darkRed,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 22
+    borderRadius: 22,
   },
   lessonText: {
     color: colors.cardBackground,
     fontSize: 12,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   cardsContainer: {
     paddingHorizontal: 25,
     paddingBottom: 30,
-    flex: 1
+    flex: 1,
   },
   topRow: {
     flexDirection: 'row',
     gap: 20,
-    marginBottom: 20
+    marginBottom: 20,
   },
   bottomRow: {
     flexDirection: 'row',
-    gap: 20
+    gap: 20,
   },
   card: {
     borderRadius: 28,
-    elevation: 4
+    elevation: 4,
   },
   leftCard: {
     flex: 1.3,
-    height: 200
+    height: 200,
   },
   rightCard: {
     flex: 1,
-    height: 200
+    height: 200,
   },
   cardContent: {
     padding: 25,
     height: '100%',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   cardHeader: {
-    alignItems: 'flex-end'
+    alignItems: 'flex-end',
   },
   cardIconContainer: {
     backgroundColor: 'rgba(255,255,255,0.2)',
@@ -234,32 +261,32 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   cardIcon: {
     fontSize: 24,
-    color: colors.cardBackground
+    color: colors.cardBackground,
   },
   cardTitle: {
     color: colors.cardBackground,
     fontSize: 20,
     fontWeight: 'bold',
-    marginTop: 15
+    marginTop: 15,
   },
   cardAvatar: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.3)',
-    marginTop: 12
+    marginTop: 12,
   },
   avatarLabel: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: colors.cardBackground
+    color: colors.cardBackground,
   },
   cardSubtitle: {
     color: colors.cardBackground,
     fontSize: 14,
     opacity: 0.9,
-    marginTop: 8
-  }
+    marginTop: 8,
+  },
 });
