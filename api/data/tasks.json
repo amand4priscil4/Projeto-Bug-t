@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1",
+    "title": "Setup React Native project",
+    "completed": true,
+    "priority": "high",
+    "createdAt": "2025-06-04T10:00:00.000Z"
+  },
+  {
+    "id": "2",
+    "title": "Implement navigation system",
+    "completed": true,
+    "priority": "high",
+    "createdAt": "2025-06-04T11:00:00.000Z"
+  },
+  {
+    "id": "3",
+    "title": "Create checklist interface",
+    "completed": false,
+    "priority": "medium",
+    "createdAt": "2025-06-04T12:00:00.000Z"
+  }
+]

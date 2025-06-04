@@ -1,0 +1,27 @@
+{
+  "sessions": [
+    {
+      "id": "1",
+      "date": "2025-06-04",
+      "duration": 25,
+      "type": "work",
+      "completed": true,
+      "createdAt": "2025-06-04T10:00:00.000Z"
+    },
+    {
+      "id": "2",
+      "date": "2025-06-04",
+      "duration": 25,
+      "type": "work",
+      "completed": true,
+      "createdAt": "2025-06-04T11:30:00.000Z"
+    }
+  ],
+  "stats": {
+    "totalSessions": 2,
+    "totalTime": 50,
+    "sessionsToday": 2,
+    "timeToday": 50,
+    "lastDate": "2025-06-04"
+  }
+}

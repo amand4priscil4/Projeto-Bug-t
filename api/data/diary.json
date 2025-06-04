@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "date": "2025-06-04",
+    "title": "React Native Development Setup",
+    "content": "Today I configured a new React Native project with Expo. Learned about navigation patterns and implemented basic screen structure. The development experience is quite smooth with hot reload.",
+    "tags": ["React Native", "Expo", "Navigation"],
+    "mood": "productive",
+    "createdAt": "2025-06-04T10:00:00.000Z"
+  },
+  {
+    "id": "2",
+    "date": "2025-06-03",
+    "title": "AsyncStorage Deep Dive",
+    "content": "Studied local storage solutions for React Native. AsyncStorage is the go-to solution for persistent data. Implemented CRUD operations for task management.",
+    "tags": ["AsyncStorage", "Storage", "Mobile"],
+    "mood": "focused",
+    "createdAt": "2025-06-03T14:00:00.000Z"
+  }
+]
