@@ -189,5 +189,3 @@ Amanda Priscila - [@amand4priscil4](https://github.com/amand4priscil4)
 Link do Projeto: [https://github.com/amand4priscil4/Projeto-Bug-t](https://github.com/amand4priscil4/Projeto-Bug-t)
 
 ---
-
-**Feito com carinho para a comunidade de desenvolvedores**
